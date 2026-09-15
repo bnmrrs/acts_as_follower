@@ -16,7 +16,10 @@ module ActsAsFollower #:nodoc:
 
     module SingletonMethods
       def unfollowed
-        self.where("NOT EXISTS (SELECT 1 FROM follows WHERE followable_id = #{self.table_name}.id AND followable_type = '#{self.model_name}')")
+        followed = Follow.unblocked.
+          where(followable_type: base_class.name).
+          where(Follow.arel_table[:followable_id].eq(arel_table[primary_key]))
+        where(followed.arel.exists.not)
       end
     end
 
